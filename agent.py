@@ -1,35 +1,35 @@
 import os
 import traceback
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Optional, Any
+from fastapi import FastAPI, Request, HTTPException
 from google import genai
 
 app = FastAPI()
-
-class Message(BaseModel):
-    role: str
-    content: str
-
-class AgentRequest(BaseModel):
-    messages: Optional[List[Message]] = []
-    threadId: Optional[str] = None
-    state: Optional[Any] = {}
 
 @app.get("/")
 async def root():
     return {"status": "online", "service": "OpenBot Gemini Agent"}
 
 @app.post("/ag-ui")
-async def handle_agent(req: AgentRequest):
+async def handle_agent(request: Request):
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured.")
     
     try:
+        # Safely parse incoming JSON regardless of structure
+        body = await request.json()
+        print("INCOMING REQUEST:", body)
+        
+        # Extract user message safely from various possible OpenBot payload keys
         user_prompt = "Hello"
-        if req.messages and len(req.messages) > 0:
-            user_prompt = req.messages[-1].content
+        if "messages" in body and isinstance(body["messages"], list) and len(body["messages"]) > 0:
+            last_msg = body["messages"][-1]
+            if isinstance(last_msg, dict):
+                user_prompt = last_msg.get("content", "Hello")
+            else:
+                user_prompt = str(last_msg)
+        elif "prompt" in body:
+            user_prompt = body["prompt"]
 
         client = genai.Client(api_key=api_key)
         response = client.models.generate_content(
