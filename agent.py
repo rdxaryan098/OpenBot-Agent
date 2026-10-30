@@ -1,4 +1,5 @@
 import os
+import traceback
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Any
@@ -26,18 +27,17 @@ async def handle_agent(req: AgentRequest):
         raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured.")
     
     try:
-        # Extract the latest user message
         user_prompt = "Hello"
         if req.messages and len(req.messages) > 0:
             user_prompt = req.messages[-1].content
 
         client = genai.Client(api_key=api_key)
+        # Using the standard stable model identifier
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-2.0-flash",
             contents=f"Act as an expert YouTube Shorts and social media niche strategist. {user_prompt}"
         )
         
-        # Return in the exact format OpenBot expects
         return {
             "events": [
                 {
@@ -47,4 +47,7 @@ async def handle_agent(req: AgentRequest):
             ]
         }
     except Exception as e:
+        err_msg = traceback.format_exc()
+        print("INTERNAL ERROR:
+", err_msg)
         raise HTTPException(status_code=500, detail=str(e))
