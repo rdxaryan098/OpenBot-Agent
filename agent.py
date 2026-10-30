@@ -32,9 +32,8 @@ async def handle_agent(req: AgentRequest):
             user_prompt = req.messages[-1].content
 
         client = genai.Client(api_key=api_key)
-        # Using the standard stable model identifier
         response = client.models.generate_content(
-            model="gemini-2.0-flash",
+            model="gemini-2.5-flash",
             contents=f"Act as an expert YouTube Shorts and social media niche strategist. {user_prompt}"
         )
         
@@ -47,7 +46,5 @@ async def handle_agent(req: AgentRequest):
             ]
         }
     except Exception as e:
-        err_msg = traceback.format_exc()
-        print("INTERNAL ERROR:
-", err_msg)
+        print("INTERNAL ERROR:", traceback.format_exc())
         raise HTTPException(status_code=500, detail=str(e))
