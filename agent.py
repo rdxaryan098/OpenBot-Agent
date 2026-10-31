@@ -130,7 +130,7 @@ async def run_ag_ui_stream(request: Request, system_instruction: str, default_pr
             try:
                 client = genai.Client(api_key=api_key)
                 response_stream = client.models.generate_content_stream(
-                    model="gemini-3.8-flash",
+                    model="gemini-flash-latest",
                     contents=conversation_text,
                     config=types.GenerateContentConfig(
                         system_instruction=system_instruction,
